@@ -22,20 +22,21 @@ function App() {
     setCurrentScore(currentScore + 1);
     setNewHighScore(currentScore + 1, highScore, setHighScore);
     setGuesses((prev) => [...prev, guess]);
-    setCountries((prev) => [...shuffle(prev, deckSize)]);
+
+    if (
+      (currentScore + 1) % 5 === 0 &&
+      currentScore + 1 > 0 &&
+      currentScore + 1 < 30
+    ) {
+      setDeckSize(deckSize + 5);
+    }
+
+    setCountries(shuffle(countries, deckSize));
   };
 
-  const resetScore = () => {
-    setCurrentScore(0);
-  };
-
-  const guessHandler = (guess) => {
-    setGuesses((prev) => [...prev, guess]);
-  };
-
-  const deckSizeHandler = () => {
-    setDeckSize((prev) => prev + 5);
-  };
+  // const resetScore = () => {
+  //   setCurrentScore(0);
+  // };
 
   const shouldLog = useRef(true);
   useEffect(() => {
@@ -53,18 +54,16 @@ function App() {
     }
   }, [countries, currentScore]);
 
+  const filteredCountries = countries.filter((val, i) => i < deckSize);
+
   return (
     <>
-      {console.log(guesses)}
       <GlobalStyle />
       <div className="App">
         <Header currentScore={currentScore} highScore={highScore} />
         <CardsList
-          resetScore={resetScore}
-          addGuess={guessHandler}
           onCardClick={cardClickHandler}
-          setDeckSize={deckSizeHandler}
-          countries={countries}
+          countries={filteredCountries}
           deckSize={deckSize}
         />
       </div>

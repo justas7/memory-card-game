@@ -39,8 +39,10 @@ export const setNewHighScore = (currentS, currentHS, fn) => {
   return currentS > currentHS ? fn(currentS) : currentHS;
 };
 
-export const shuffle = (deck, deckSize) => {
+export const shuffle = (countries, deckSize) => {
   const numbs = randomNumbers(deckSize, deckSize - 1);
-  const newDeck = numbs.map((numb) => deck[numb]);
-  return newDeck;
+  const newDeck = numbs.map((numb) => countries[numb]);
+  const rest = countries.filter((val, i) => i > deckSize - 1);
+
+  return rest ? [...newDeck, ...rest] : [...newDeck];
 };
