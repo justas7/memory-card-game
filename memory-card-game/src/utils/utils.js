@@ -12,7 +12,7 @@ export const randomNumbers = (length, maxNumb) => {
 };
 
 /* fetch coutry data from public/data.json. There are 243 countries*/
-export const getCountriesData = async () => {
+export const fetchCountries = async () => {
   const response = await fetch('data.json', {
     headers: {
       'Content-Type': 'application/json',
@@ -23,14 +23,13 @@ export const getCountriesData = async () => {
   return info;
 };
 
-export const setCards = (data, setState, numbers) => {
+export const setCards = (data, numbers) => {
   const details = data.map((country) => ({
     country: country.name,
     code: country.code.toLowerCase(),
   }));
 
-  const countries = numbers.map((index) => details[index]);
-  setState((prev) => [...prev, ...countries]);
+  return numbers.map((index) => details[index]);
 };
 
 /* set high score depending on current score state */

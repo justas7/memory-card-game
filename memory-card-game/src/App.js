@@ -1,8 +1,8 @@
 import GlobalStyle from './styles/GlobalStyle';
 import React, { useRef, useState, useEffect } from 'react';
 import CardsList from './components/CardsList';
+import Spinner from './components/Spinner';
 import {
-  getCountriesData,
   randomNumbers,
   setCards,
   setNewHighScore,
@@ -15,52 +15,68 @@ function App() {
   const [currentScore, setCurrentScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [guesses, setGuesses] = useState([]);
-  /* Number of cards to display */
   const [deckSize, setDeckSize] = useState(5);
-
-  const cardClickHandler = (guess) => {
-    setCurrentScore(currentScore + 1);
-    setNewHighScore(currentScore + 1, highScore, setHighScore);
-    setGuesses((prev) => [...prev, guess]);
-
-    if (
-      (currentScore + 1) % 5 === 0 &&
-      currentScore + 1 > 0 &&
-      currentScore + 1 < 30
-    ) {
-      setDeckSize(deckSize + 5);
-    }
-
-    setCountries(shuffle(countries, deckSize));
-  };
-
-  // const resetScore = () => {
-  //   setCurrentScore(0);
-  // };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const shouldLog = useRef(true);
   useEffect(() => {
     if (shouldLog.current) {
       shouldLog.current = false;
-      try {
-        (async () => {
-          const data = await getCountriesData();
-          const numbers = randomNumbers(30, 242);
-          setCards(data, setCountries, numbers);
-        })();
-      } catch {
-        throw new Error('Something went wrong');
-      }
+
+      (async () => {
+        try {
+          const response = await fetch('data.json');
+
+          if (response.ok) {
+            const data = await response.json();
+            const numbers = randomNumbers(30, 242);
+            setCountries(setCards(data, numbers));
+          } else {
+            throw response;
+          }
+        } catch (e) {
+          setError(e);
+        } finally {
+          setLoading(false);
+        }
+      })();
     }
-  }, [countries, currentScore]);
+  }, [countries]);
+
+  const cardClickHandler = (guess) => {
+    if (guesses.includes(guess)) {
+      resetScore();
+      return;
+    }
+    setCurrentScore(currentScore + 1);
+    setNewHighScore(currentScore + 1, highScore, setHighScore);
+    setGuesses((prev) => [...prev, guess]);
+
+    if (guesses.length + 1 === deckSize) {
+      setDeckSize(deckSize + 5);
+      setGuesses([]);
+    }
+    setCountries(shuffle(countries, deckSize));
+  };
+
+  const resetScore = () => {
+    setCurrentScore(0);
+    setDeckSize(5);
+    setCountries(shuffle(countries, 30));
+    setGuesses([]);
+  };
 
   const filteredCountries = countries.filter((val, i) => i < deckSize);
+
+  if (error) throw error;
 
   return (
     <>
       <GlobalStyle />
       <div className="App">
         <Header currentScore={currentScore} highScore={highScore} />
+        {loading && <Spinner />}
         <CardsList
           onCardClick={cardClickHandler}
           countries={filteredCountries}
